@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点餐系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .food-item {
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: white;
+            width: 200px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>选择您的食物</h1>
+    <div id="menu">
+        <!-- 食物1 -->
+        <div class="food-item" id="nasiLemak">
+            <p>Nasi Lemak (RM 8)</p>
+            <label><input type="checkbox" class="addon" value="鸡蛋"> +鸡蛋 (RM 1)</label><br>
+            <label><input type="checkbox" class="addon" value="饭"> +饭 (RM 1)</label><br>
+            <label><input type="checkbox" class="addon" value="菜"> +菜 (RM 1)</label><br>
+            <button onclick="addItem('Nasi Lemak', this)">添加</button>
+        </div>
+
+        <!-- 食物2 -->
+        <div class="food-item" id="rotiCanai">
+            <p>Roti Canai (RM 8)</p>
+            <label><input type="checkbox" class="addon" value="鸡蛋"> +鸡蛋 (RM 1)</label><br>
+            <label><input type="checkbox" class="addon" value="饭"> +饭 (RM 1)</label><br>
+            <label><input type="checkbox" class="addon" value="菜"> +菜 (RM 1)</label><br>
+            <button onclick="addItem('Roti Canai', this)">添加</button>
+        </div>
+    </div>
+
+    <h2>您选择的食物：</h2>
+    <ul id="selectedItems"></ul>
+    <p id="totalPrice">总价: RM 0</p>
+
+    <button onclick="sendOrder()">发送订单到 WhatsApp</button>
+
+    <script>
+        let selectedFoods = [];
+        let totalPrice = 0;
+
+        function addItem(food, element) {
+            let addons = element.parentElement.querySelectorAll(".addon:checked");
+            let addonText = [];
+            let addonCost = 0;
+
+            addons.forEach(addon => {
+                addonText.push(addon.value);
+                addonCost += 1;
+                addon.checked = false; // 清除已选附加选项
+            });
+
+            let foodItem = { name: food, addons: addonText, price: 8 + addonCost };
+            selectedFoods.push(foodItem);
+            totalPrice += foodItem.price;
+            updateSelectedItems();
+        }
+
+        function removeItem(index) {
+            totalPrice -= selectedFoods[index].price;
+            selectedFoods.splice(index, 1);
+            updateSelectedItems();
+        }
+
+        function updateSelectedItems() {
+            let list = document.getElementById("selectedItems");
+            list.innerHTML = "";
+            selectedFoods.forEach((item, index) => {
+                let li = document.createElement("li");
+                li.textContent = item.name + (item.addons.length ? " (" + item.addons.join(", ") + ")" : "") + " - RM " + item.price;
+                let removeButton = document.createElement("button");
+                removeButton.textContent = "取消";
+                removeButton.onclick = () => removeItem(index);
+                li.appendChild(removeButton);
+                list.appendChild(li);
+            });
+            document.getElementById("totalPrice").textContent = "总价: RM " + totalPrice;
+        }
+
+        function sendOrder() {
+            if (selectedFoods.length === 0) {
+                alert("请先选择食物");
+                return;
+            }
+            let message = "订单详情：\n" + selectedFoods.map(item => item.name + (item.addons.length ? " (" + item.addons.join(", ") + ")" : "") + " - RM " + item.price).join("\n");
+            message += `\n总价: RM ${totalPrice}`;
+            let phoneNumber = "60172643033";
+            let url = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>
